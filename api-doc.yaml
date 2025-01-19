@@ -1,0 +1,170 @@
+openapi: 3.0.0
+info:
+  title: UNO API
+  description: "play UNO via REST API! For reference: cards are denoted by 2-3 characters. For colored cards, the first letter is the color (R, Y, G, or B) and the second is the number. There are three exceptions: +2, S (skip), and R (reverse). Wild cards are denoted with \"W\" or \"W4\" (wild draw 4)."
+  version: 1.0.0
+servers:
+  - url: https://uno.shuchir.dev/api
+paths:
+  /players:
+    get:
+      summary: Get all players
+      responses:
+        '200':
+          description: A list of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /state:
+    get:
+      summary: Get game state
+      description: This route lists the current card on the pile, next accepted color (in case of wilds), the next player, and the direction (reversed or not)
+      responses:
+        '200':
+          description: The current game state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_card:
+                    type: string
+                  next_color:
+                    type: string
+                  next_player:
+                    type: string
+                  direction:
+                    type: string
+  /join:
+    post:
+      summary: Join game
+      description: This route lets you join a game. If a game is in progress, you will be added to the end of the playing queue. You will be given 7 random cards to start.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Your player information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  cards:
+                    type: array
+                    items:
+                      type: string
+                  secret:
+                    type: string
+  /view_hand:
+    post:
+      summary: View hand
+      description: Get a list of the cards in your hand currently
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                secret:
+                  type: string
+      responses:
+        '200':
+          description: A list of cards in your hand
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /draw:
+    post:
+      summary: Draw card
+      description: This route will only work if it is your turn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                secret:
+                  type: string
+      responses:
+        '200':
+          description: The drawn card
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    type: string
+  /uno:
+    get:
+      summary: Call UNO
+      description: Must be called before the next turn is played. Will not do anything if player has > 1 card.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+  /play:
+    post:
+      summary: Play a card
+      description: This route will only work if it is your turn. The color parameter is only required if a wild card is played. Valid options are R, Y, G, or B.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                secret:
+                  type: string
+                card:
+                  type: string
+                color:
+                  type: string
+                  enum: [R, Y, G, B]
+      responses:
+        '200':
+          description: Success status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
